@@ -1,0 +1,30 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Public read for most collections
+    match /{document=**} {
+      allow read: if true;
+    }
+
+    // Donations: allow create for authenticated users (or adjust for public web checkout with server-side verification)
+    match /donations/{docId} {
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && request.auth.token.admin == true;
+      allow read: if true;
+    }
+
+    // Volunteers: allow create for authenticated users
+    match /volunteers/{docId} {
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && request.auth.token.admin == true;
+      allow read: if true;
+    }
+
+    // Events: public read; admin-only modifications
+    match /events/{docId} {
+      allow read: if true;
+      allow create, update, delete: if request.auth != null && request.auth.token.admin == true;
+    }
+  }
+}
